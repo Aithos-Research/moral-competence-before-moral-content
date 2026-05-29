@@ -1,0 +1,20 @@
+# Core eval framework
+inspect-ai>=0.3.140
+
+# Model provider SDKs
+anthropic>=0.40.0
+openai>=1.35.0
+google-genai>=2.0.0
+mistralai>=1.0.0
+# Note: GLM, DeepSeek, Kimi, Qwen, Llama deployments are served via Fireworks
+# through inspect_ai's openai-compatible provider — no extra package needed.
+
+# Analysis & plotting
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# Config / IO
+PyYAML>=6.0
+python-dotenv>=1.0.0

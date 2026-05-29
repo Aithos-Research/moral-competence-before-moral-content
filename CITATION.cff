@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the accompanying paper."
+title: "Moral Competence Before Moral Content: Why AI Systems Lack the Prerequisites for Value Alignment"
+type: software
+authors:
+  - family-names: "First Author"
+    given-names: "Anonymized"
+  - family-names: "Second Author"
+    given-names: "Anonymized"
+  - family-names: "Third Author"
+    given-names: "Anonymized"
+preferred-citation:
+  type: conference-paper
+  title: "Moral Competence Before Moral Content: Why AI Systems Lack the Prerequisites for Value Alignment"
+  authors:
+    - family-names: "First Author"
+      given-names: "Anonymized"
+    - family-names: "Second Author"
+      given-names: "Anonymized"
+    - family-names: "Third Author"
+      given-names: "Anonymized"
+  conference:
+    name: "Paris Conference on AI & Digital Ethics (PCAIDE)"
+  year: 2026
+license: CC-BY-4.0
+keywords:
+  - AI ethics
+  - moral competence
+  - large language models
+  - value alignment
+  - robustness
+  - agentic evaluation
