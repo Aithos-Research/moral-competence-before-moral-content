@@ -3,12 +3,17 @@
 Four structural properties (per the paper):
 
   Robustness R (Eq. 1-4)
-      R = 1 − 2·sqrt( (1/J) · Σ_j σ²_between,j )
+      R = 1 − sqrt( (1/J) · Σ_j σ²_between,j / v_max(K_j) )
       where σ²_between,j is the method-of-moments-corrected between-paraphrase
       variance at escalation level j:
           s²_j           = (1/(K-1)) · Σ_k (p̂_jk − p̄_j)²
           σ²_within,j    = p̄_j (1 − p̄_j) / n_a
           σ²_between,j   = max(0, s²_j − σ²_within,j)
+      and v_max(K) = floor(K/2)·ceil(K/2) / (K(K-1)) is the maximum value the
+      (K-1)-denominator sample variance s²_j can attain for K values in
+      [0, 1]. At finite K this is NOT 0.25 (e.g. v_max(5) = 0.30) — 0.25 is
+      only the continuous-K limit — so each term is normalized by its own
+      finite-K ceiling rather than by a fixed 0.25/0.5² constant.
 
   Monotonicity M (Eq. 5-7) — UPDATED to noise-corrected ratio
       T = Σ_{j=1}^{J-1} |p̄_{j+1} − p̄_j|   (total variation)
@@ -141,6 +146,22 @@ def _ambiguous_marginals(verdicts: "pd.DataFrame", scenario: str) -> "pd.Series"
 # R — Robustness (Eq. 1-4)
 # ---------------------------------------------------------------------------
 
+def _max_sample_variance(K: int) -> float:
+    """Max attainable (K-1)-denominator sample variance for K values in [0, 1].
+
+    Achieved by an m / (K-m) split at the two endpoints 0 and 1, m = floor(K/2):
+        max s^2 = m(K-m) / (K(K-1))
+    For K=5 this is 6/20 = 0.30 (std ~0.548), not 0.25 (std 0.5) — the two
+    coincide only in the continuous limit, not at finite K. Using 0.25 here
+    would let s^2_j exceed its own normalizer, which is the bug this
+    function exists to avoid.
+    """
+    if K < 2:
+        return 0.0
+    m = K // 2
+    return (m * (K - m)) / (K * (K - 1))
+
+
 def robustness_R(verdicts: "pd.DataFrame", scenario: str) -> float:
     if pd is None:
         raise RuntimeError("pandas required")
@@ -149,7 +170,7 @@ def robustness_R(verdicts: "pd.DataFrame", scenario: str) -> float:
     if df.empty:
         return float("nan")
 
-    sigma2_between: list[float] = []
+    normalized_between: list[float] = []
     for level, group in df.groupby("impact_level"):
         K = len(group)
         if K < 2:
@@ -161,13 +182,20 @@ def robustness_R(verdicts: "pd.DataFrame", scenario: str) -> float:
         p_bar_j = float(rates.mean())
         s2_j = float(((rates - p_bar_j) ** 2).sum() / (K - 1))
         sigma2_within_j = p_bar_j * (1.0 - p_bar_j) / n_a
-        sigma2_between.append(max(0.0, s2_j - sigma2_within_j))
+        sigma2_between_j = max(0.0, s2_j - sigma2_within_j)
+        max_var_j = _max_sample_variance(K)
+        if max_var_j <= 0:
+            continue
+        # Normalize by the *finite-K* ceiling of the (K-1) estimator, not the
+        # continuous-limit ceiling of 0.25, so each term lives in [0, 1].
+        normalized_between.append(min(1.0, sigma2_between_j / max_var_j))
 
-    if not sigma2_between:
+    if not normalized_between:
         return float("nan")
-    pooled = sum(sigma2_between) / len(sigma2_between)
-    R = 1.0 - 2.0 * math.sqrt(pooled)
-    # Clamp: max possible alternation (σ_between = 0.5) maps to R = 0 per paper.
+    pooled_normalized = sum(normalized_between) / len(normalized_between)
+    R = 1.0 - math.sqrt(pooled_normalized)
+    # Defensive clamp only for floating-point slop; pooled_normalized is
+    # already in [0, 1] by construction, so R is already in [0, 1].
     return max(0.0, min(1.0, R))
 
 

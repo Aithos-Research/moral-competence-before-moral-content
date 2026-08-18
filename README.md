@@ -242,7 +242,7 @@ The four metrics implement paper §4.4:
 
 | Metric | Definition | Range |
 |---|---|---:|
-| `R` Robustness | `1 − 2·√(mean σ²_between,j)` with method-of-moments correction | [0, 1] |
+| `R` Robustness | `1 − √(mean σ²_between,j / v_max(K_j))` with method-of-moments correction and finite-K variance normalization | [0, 1] |
 | `M` Monotonicity | `N / (T − E[T−N \| H₀])` if T−N > noise floor, else 1 (with granularity-floor fix) | [0, 1] |
 | `D` Decisiveness | `1 − 4 · mean(p̄_j(1−p̄_j))` | [0, 1] |
 | `P` Pareto viability | `2c − 1` where c = correct-option rate in neutered cells | [−1, +1] |

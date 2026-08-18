@@ -491,7 +491,7 @@ def plot_dashboard(rows, out, model, scenario, n_per_cell, metrics):
     entries = [
         ("R  Robustness",
          metrics["R"], "pos",
-         "= 1 − 2·√(mean σ²_between)  with MoM correction"),
+         "= 1 − √(mean σ²_between/v_max(K))  with MoM correction"),
         ("M  Monotonicity",
          metrics["M"], "pos",
          "= N / (T − E[T−N|H0])  noise-corrected ratio on marginals"),
